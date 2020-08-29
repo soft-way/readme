@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: centos-systemd
+spec:
+  serviceName: centos-systemd
+  replicas: 1
+  selector:
+    matchLabels:
+      app: centos-systemd
+  template:
+    metadata:
+      labels:
+        app: centos-systemd
+    spec:
+      containers:
+      - name: centos-systemd
+        image: docker.io/xmchen/centos-systemd:7.8
+        command: [ "/usr/sbin/init" ]
+        securityContext:
+          privileged: true
