@@ -19,3 +19,4 @@ spec:
         command: [ "/usr/sbin/init" ]
         securityContext:
           privileged: true
+        imagePullPolicy: Always
