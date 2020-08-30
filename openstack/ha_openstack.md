@@ -2,3 +2,9 @@
 
 # Hardware
 HP blade system + 
+
+# HAproxy
+
+# Keepalived
+
+
