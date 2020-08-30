@@ -1,4 +1,4 @@
-# Install dual stack Kubernetes cluster (High-Availability Kubernetes Masters)
+# Install Dual Stack HA Kubernetes Masters Cluster
 
 # Virtual machine
 ```
