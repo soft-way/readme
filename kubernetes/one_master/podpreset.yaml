@@ -1,0 +1,18 @@
+apiVersion: settings.k8s.io/v1alpha1
+kind: PodPreset
+metadata:
+  name: proxy
+spec:
+   env:
+    - name: HTTP_PROXY
+      value: "http://192.168.0.1:8000"
+    - name: HTTPS_PROXY
+      value: "http://192.168.0.1:8000"
+    - name: NO_PROXY
+      value: "10.96.0.0/16"
+    - name: http_proxy
+      value: "http://192.168.0.1:8000"
+    - name: https_proxy
+      value: "http://192.168.0.1:8000"
+    - name: no_proxy
+      value: "10.96.0.0/16"
