@@ -1,0 +1,99 @@
+
+- name: turn off swap
+  shell: swapoff -a && sysctl -w vm.swappiness=0
+
+- name: Add the br_netfilter module
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: update kernel settings
+  become: yes
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: stop services
+  service:
+    name: '{{ item }}'
+    state: stopped
+  with_items:
+    - docker
+    - kubelet
+
+- name: create /etc/docker fold if not existed
+  file: dest=/etc/docker state=directory mode=755
+
+- name: upload daemon.json for docker
+  copy:
+    src: daemon.json
+    dest: /etc/docker
+
+- name: 'create /etc/docker/certs.d/{{ image_repo }} fold if not existed'
+  file: dest=/etc/docker/certs.d/{{ image_repo }} state=directory mode=755
+
+- name: 'copy CA certificate into /etc/docker/certs.d/{{ image_repo }}'
+  copy:
+    src: root_ca.crt
+    dest: /etc/docker/certs.d/{{ image_repo }}/ca.crt
+
+- name: create /etc/systemd/system/docker.service.d fold if not existed
+  file: dest=/etc/systemd/system/docker.service.d state=directory mode=755
+
+- name: test if KUBELET_MCAS_ARGS is already added
+  shell: cat /etc/systemd/system/kubelet.service.d/kubeadm.conf | grep KUBELET_MCAS_ARGS | wc -l
+  register: mcas_args
+
+- name: set pause container from private docker registry step 1
+  lineinfile:
+    path: /etc/systemd/system/kubelet.service.d/kubeadm.conf
+    insertbefore: '^ExecStart'
+    firstmatch: yes
+    line: 'Environment="KUBELET_MCAS_ARGS=--pod-infra-container-image={{ image_repo }}/pause:{{ pause_version }}"'
+  when: mcas_args.stdout == "0"
+
+- name: replace image repo
+  replace:
+    path: /etc/systemd/system/kubelet.service.d/kubeadm.conf
+    regexp: 'pod-infra-container-image=.*pause:3.1'
+    replace: 'pod-infra-container-image={{ image_repo }}/pause:{{ pause_version }}'
+
+- name: set pause container from private docker registry step 2
+  lineinfile:
+    path: /etc/systemd/system/kubelet.service.d/kubeadm.conf
+    backrefs: yes
+    regexp: '(^ExecStart=/usr/bin/kubelet.*$)'
+    line: '\1 $KUBELET_MCAS_ARGS'
+  when: mcas_args.stdout == "0"
+
+- name: update cluster dns
+  replace:
+    path: /etc/systemd/system/kubelet.service.d/kubeadm.conf
+    regexp: '10.96.0.10'
+    replace: '{{ cluster_dns }}'
+
+- name: update cluster domain
+  replace:
+    path: /etc/systemd/system/kubelet.service.d/kubeadm.conf
+    regexp: 'cluster.local'
+    replace: '{{ cluster_domain }}'
+
+- name: enable services
+  service:
+    name: '{{ item }}'
+    enabled: yes
+  with_items:
+    - docker
+    - kubelet
+
+- name: start services
+  service:
+    name: '{{ item }}'
+    daemon_reload: yes
+    state: started
+  with_items:
+    - docker
+    - kubelet

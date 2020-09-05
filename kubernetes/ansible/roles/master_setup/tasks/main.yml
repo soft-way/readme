@@ -1,0 +1,103 @@
+- name: create {{ k8s_install_root }} directory if not existed
+  file: dest={{ k8s_install_root }} state=directory mode=755
+
+- name: upload k8s configuration files
+  copy:
+    src: '{{ item }}'
+    dest: '{{ k8s_install_root }}'
+    mode: '0644'
+  with_items:
+    - calico.yml
+
+- name: upload node status check tool
+  copy:
+    src: '{{ playbook_dir }}/files/utils/node_wait.ksh'
+    dest: '{{ k8s_install_root }}'
+    mode: '0755'
+
+- name: get hostname
+  shell: hostname
+  register: hostname
+
+- name: get master ip
+  shell: grep '{{ hostname.stdout }}' /etc/hosts | head -1 | awk ' { print $1 }'
+  register: ip
+
+- name: create first master node
+  shell:
+    cmd: |
+       kubeadm init \
+         --control-plane-endpoint {{ control_plane_endpoint }}:{{ bind_port }} \
+         --pod-network-cidr {{ pod_subnet }} \
+         --apiserver-advertise-address {{ ip.stdout }} \
+         --image-repository {{ image_repo }} \
+         --kubernetes-version {{ kubernetes_version }} \
+         --apiserver-bind-port {{ bind_port }} \
+         > {{ k8s_install_root }}/kubeadm-init-config.out
+
+- name: get worker join command
+  shell: "grep -m1 -A1 'kubeadm join' {{ k8s_install_root }}/kubeadm-init-config.out | tr -d '\\\\\\\n' "
+  register: worker_join_command
+
+- name: save worker join command
+  set_fact:
+    worker_join_command: '{{ worker_join_command.stdout }} --apiserver-bind-port {{ bind_port }}'
+
+- name: get master join command
+  shell: "grep -m1 -A2 'kubeadm join' {{ k8s_install_root }}/kubeadm-init-config.out | tr -d '\\\\\\\n' "
+  register: master_join_command
+
+- name: save master join command
+  set_fact:
+    master_join_command: '{{ master_join_command.stdout }} --apiserver-bind-port {{ bind_port }}'
+
+- name: setup node as master
+  set_fact:
+    k8s_mode: master
+
+- name: replace image repo for calico
+  replace:
+    path: '{{ k8s_install_root }}/{{ item }}'
+    regexp: 'k8s.gcr.io|__IMAGE_REPO__'
+    replace: '{{ image_repo }}'
+  with_items:
+    - calico.yml
+
+- name: replace pod subnet for calico
+  replace:
+    path: '{{ k8s_install_root }}/{{ item }}'
+    regexp: '__POD_SUBNET__'
+    replace: '{{ pod_subnet }}'
+  with_items:
+    - calico.yml
+
+- name: replace calico interface
+  replace:
+    path: '{{ k8s_install_root }}/{{ item }}'
+    regexp: '__CALICO_INTF__'
+    replace: '{{ calico_nic }}'
+  with_items:
+    - calico.yml
+
+- import_tasks: '{{ playbook_dir }}/tasks/common/kubectl_cli_conf.yml'
+
+- name: apply calico
+  shell: 'kubectl apply -f {{ k8s_install_root }}/calico.yml'
+  
+- name: fetch kubeadm init config log from first master
+  fetch:
+    src: '{{ k8s_install_root }}/kubeadm-init-config.out'
+    dest: '{{ playbook_dir }}/k8s/kubeadm-init-config.out'
+    flat: yes
+
+- name: fetch master join required configuration files from first master
+  fetch:
+    src: '{{ item }}'
+    dest: '{{ playbook_dir }}/k8s'
+  with_items: '{{ master_join_files }}'
+
+- name: wait first master ready
+  import_tasks: '{{ playbook_dir }}/tasks/common/node_wait.yml'
+  vars:
+    mode: master
+    nodes: 1

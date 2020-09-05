@@ -1,0 +1,17 @@
+---
+
+- debug:
+    msg: 'expected: {{ nodes }} {{ mode }} node(s)'
+
+- name: run k8s cluster {{ mode }} node check
+  shell: 
+    cmd: 'nohup {{ k8s_install_root }}/node_wait.ksh {{ mode }} {{ nodes }} > {{ k8s_install_root }}/node_wait.{{ mode }} &'
+    
+- name: wait k8s cluster {{ mode }} node ready
+  wait_for:
+    path: '{{ k8s_install_root }}/node_wait.{{ mode }}'
+    search_regex: 'completed'
+    timeout: 300
+
+- debug:
+    msg: '{{ nodes }} {{ mode }} node(s) ready'

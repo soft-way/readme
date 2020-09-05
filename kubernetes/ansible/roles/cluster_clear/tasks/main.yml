@@ -1,0 +1,61 @@
+
+- name: create {{ k8s_install_root }} directory if not existed
+  file: dest={{ k8s_install_root }} state=directory mode=755
+
+- name: upload route clear tool
+  tags:
+    - route
+  copy:
+    src: '{{ playbook_dir }}/files/utils/route_clear.ksh'
+    dest: '{{ k8s_install_root }}'
+    mode: '0755'
+
+- name: clear k8s cluster
+  tags:
+    - cluster
+  shell:
+    cmd: |
+        kubeadm reset -f;
+        iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+
+- name: delete cni configuration files
+  tags:
+    - cni
+  file:
+    path: /etc/cni/net.d/
+    state: absent
+
+- name: clear certs
+  tags:
+    - cluster
+  file:
+    state: absent
+    path: "{{ item }}"
+  with_items: '{{ master_join_files }}'
+
+#- name: stop services
+#  service:
+#    name: '{{ item }}'
+#    state: stopped
+#  with_items:
+#    - docker
+#    - kubelet
+#  tags:
+#    - service
+
+#- name: disable services
+#  service:
+#    name: '{{ item }}'
+#    enabled: no
+#  with_items:
+#    - docker
+#    - kubelet
+#  tags:
+#    - service
+
+- name: clear log
+  file:
+    path: '{{ k8s_install_root }}'
+    state: absent
+  tags:
+    - log

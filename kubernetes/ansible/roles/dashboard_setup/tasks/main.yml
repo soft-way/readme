@@ -1,0 +1,49 @@
+---
+
+- name: create {{ k8s_install_root }} directory if not existed
+  file: dest={{ k8s_install_root }} state=directory mode=755
+
+- name: upload dashboard-adminuser.yml
+  copy:
+    src: '{{ item }}'
+    dest: '{{ k8s_install_root }}'
+    mode: '0644'
+  with_items:
+    - dashboard-adminuser.yml
+
+- name: 'upload kubernetes-dashboard-{{ dashboard_version }}.yml'
+  copy:
+    src: 'kubernetes-dashboard-{{ dashboard_version }}.yml'
+    dest: '{{ k8s_install_root }}/kubernetes-dashboard.yml'
+    mode: '0644'
+
+- name: upload dashboard certificate files
+  copy:
+    src: 'pki'
+    dest: '{{ k8s_install_root }}'
+
+- name: replace image repo
+  replace:
+    path: '{{ k8s_install_root }}/kubernetes-dashboard.yml'
+    regexp: '__IMAGE_REPO__'
+    replace: '{{ image_repo }}'
+
+- name: create namespace kubernetes-dashboard
+  shell: 'kubectl create namespace kubernetes-dashboard'
+  when: dashboard_version == 'v2'
+
+- name: create certs for v1
+  shell: 'kubectl -n kube-system create secret generic kubernetes-dashboard-certs --from-file={{ k8s_install_root }}/pki'
+  when: dashboard_version == 'v1'
+
+- name: create certs for v2
+  shell: 'kubectl -n kubernetes-dashboard create secret generic kubernetes-dashboard-certs --from-file={{ k8s_install_root }}/pki'
+  when: dashboard_version == 'v2'
+
+- name: apply dashboard yml
+  shell:
+    cmd: 'kubectl apply -f {{ k8s_install_root }}/kubernetes-dashboard.yml'
+
+- name: apply adminuser yml
+  shell:
+    cmd: 'kubectl apply -f {{ k8s_install_root }}/dashboard-adminuser.yml'

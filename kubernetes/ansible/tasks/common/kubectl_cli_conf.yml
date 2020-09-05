@@ -1,0 +1,27 @@
+---
+
+#- name: 'create {{ ansible_env.HOME }}/.kube directory if not existed'
+#  file:
+#    dest: '{{ ansible_env.HOME }}/.kube'
+#    state: directory
+#    mode=700
+#
+#- name: copy admin.conf
+#  copy:
+#    src: /etc/kubernetes/admin.conf
+#    dest: '{{ ansible_env.HOME }}/.kube/config'
+#    remote_src: yes
+#
+#- name: chown config
+#  file:
+#    path: '{{ ansible_env.HOME }}/.kube/config'
+#    owner: '{{ ansible_user }}'
+#    group: '{{ ansible_group }}'
+
+- name: kubectl cli access configuration
+  shell:
+    cmd: |
+      mkdir -p $HOME/.kube
+      \cp /etc/kubernetes/admin.conf $HOME/.kube/config
+      chown $(id -u):$(id -g) $HOME/.kube/config
+    warn: false

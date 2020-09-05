@@ -1,0 +1,47 @@
+---
+
+- name: prepare env for k8s cluster
+  hosts: master, worker
+  tags: prepare
+  gather_facts: no
+  remote_user: root
+  roles:
+    - env_prepare
+
+- name: setup k8s first master
+  hosts: master[0]
+  gather_facts: no
+  remote_user: root
+  roles:
+    - master_setup
+
+- name: join k8s cluster as master
+  hosts: master[1:]
+  gather_facts: no
+  remote_user: root
+  roles:
+    - cluster_join_as_master
+
+
+- name: join k8s cluster as worker
+  hosts: worker
+  gather_facts: no
+  remote_user: root
+  roles:
+    - cluster_join_as_worker
+
+- name: wait k8s cluster all nodes ready
+  hosts: master[0]
+  gather_facts: no
+  tasks:
+    - import_tasks: '{{ playbook_dir }}/tasks/common/node_wait.yml'
+      vars:
+        mode: all
+        nodes: '{{ groups["all"] | length }}'
+
+- name: dashboard
+  hosts: master[0]
+  gather_facts: no
+  tags: dashboard
+  roles:
+    - dashboard_setup
