@@ -14,6 +14,14 @@ CA certificate into system.
 ```
 
 2. Make sure ansible, docker and k8s related rpms are installed
+```
+    # rpm -qa |grep kubernetes
+    kubernetes-1.19.0-1.el7.x86_64
+    kubernetes-client-1.19.0-1.el7.x86_64
+    kubernetes-master-1.19.0-1.el7.x86_64
+    kubernetes-kubeadm-1.19.0-1.el7.x86_64
+    kubernetes-node-1.19.0-1.el7.x86_64
+```
 
 3. Route has been added into all nodes and all can reach docker image repo
 

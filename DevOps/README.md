@@ -1,4 +1,0 @@
-# DevOps system setup
-
-# Git
-
