@@ -28,10 +28,11 @@
     cmd: |
        kubeadm init \
          --control-plane-endpoint {{ control_plane_endpoint }}:{{ bind_port }} \
-         --pod-network-cidr {{ pod_subnet }} \
-         --apiserver-advertise-address {{ ip.stdout }} \
-         --image-repository {{ image_repo }} \
          --kubernetes-version {{ kubernetes_version }} \
+         --image-repository {{ k8s_image_repo }} \
+         --apiserver-advertise-address {{ ip.stdout }} \
+         --service-dns-domain {{ cluster_domain }} \
+         --pod-network-cidr {{ pod_subnet }} \
          --apiserver-bind-port {{ bind_port }} \
          > {{ k8s_install_root }}/kubeadm-init-config.out
 
@@ -58,8 +59,8 @@
 - name: replace image repo for calico
   replace:
     path: '{{ k8s_install_root }}/{{ item }}'
-    regexp: 'k8s.gcr.io|__IMAGE_REPO__'
-    replace: '{{ image_repo }}'
+    regexp: 'k8s.gcr.io|__UTILS_IMAGE_REPO__'
+    replace: '{{ utils_image_repo }}'
   with_items:
     - calico.yml
 

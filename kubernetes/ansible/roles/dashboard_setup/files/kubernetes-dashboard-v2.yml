@@ -1,3 +1,4 @@
+
 # Copyright 2017 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -189,8 +190,8 @@ spec:
     spec:
       containers:
         - name: kubernetes-dashboard
-          image: __IMAGE_REPO__/kubernetesui/dashboard:v2.0.0-rc6
-          imagePullPolicy: Always
+          image: __UTILS_IMAGE_REPO__/kubernetesui/dashboard:v2.0.4
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8443
               protocol: TCP
@@ -229,7 +230,7 @@ spec:
           emptyDir: {}
       serviceAccountName: kubernetes-dashboard
       nodeSelector:
-        "beta.kubernetes.io/os": linux
+        "kubernetes.io/os": linux
       # Comment the following tolerations if Dashboard must not be deployed on master
       tolerations:
         - key: node-role.kubernetes.io/master
@@ -275,7 +276,8 @@ spec:
     spec:
       containers:
         - name: dashboard-metrics-scraper
-          image: __IMAGE_REPO__/kubernetesui/metrics-scraper:v1.0.3
+          image: __UTILS_IMAGE_REPO__/kubernetesui/metrics-scraper:v1.0.6
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
               protocol: TCP
@@ -296,7 +298,7 @@ spec:
             runAsGroup: 2001
       serviceAccountName: kubernetes-dashboard
       nodeSelector:
-        "beta.kubernetes.io/os": linux
+        "kubernetes.io/os": linux
       # Comment the following tolerations if Dashboard must not be deployed on master
       tolerations:
         - key: node-role.kubernetes.io/master

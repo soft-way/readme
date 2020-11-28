@@ -32,19 +32,19 @@
     src: daemon.json
     dest: /etc/docker
 
-- name: 'create /etc/docker/certs.d/{{ image_repo }} fold if not existed'
-  file: dest=/etc/docker/certs.d/{{ image_repo }} state=directory mode=755
+- name: 'create /etc/docker/certs.d/{{ k8s_image_repo }} fold if not existed'
+  file: dest=/etc/docker/certs.d/{{ k8s_image_repo }} state=directory mode=755
 
-- name: 'copy CA certificate into /etc/docker/certs.d/{{ image_repo }}'
+- name: 'copy CA certificate into /etc/docker/certs.d/{{ k8s_image_repo }}'
   copy:
     src: root_ca.crt
-    dest: /etc/docker/certs.d/{{ image_repo }}/ca.crt
+    dest: /etc/docker/certs.d/{{ k8s_image_repo }}/ca.crt
 
 - name: create /etc/systemd/system/docker.service.d fold if not existed
   file: dest=/etc/systemd/system/docker.service.d state=directory mode=755
 
-- name: test if KUBELET_MCAS_ARGS is already added
-  shell: cat /etc/systemd/system/kubelet.service.d/kubeadm.conf | grep KUBELET_MCAS_ARGS | wc -l
+- name: test if KUBELET_MY_ARGS is already added
+  shell: cat /etc/systemd/system/kubelet.service.d/kubeadm.conf | grep KUBELET_MY_ARGS | wc -l
   register: mcas_args
 
 - name: set pause container from private docker registry step 1
@@ -52,14 +52,14 @@
     path: /etc/systemd/system/kubelet.service.d/kubeadm.conf
     insertbefore: '^ExecStart'
     firstmatch: yes
-    line: 'Environment="KUBELET_MCAS_ARGS=--pod-infra-container-image={{ image_repo }}/pause:{{ pause_version }}"'
+    line: 'Environment="KUBELET_MY_ARGS=--pod-infra-container-image={{ k8s_image_repo }}/pause:{{ pause_version }}"'
   when: mcas_args.stdout == "0"
 
 - name: replace image repo
   replace:
     path: /etc/systemd/system/kubelet.service.d/kubeadm.conf
     regexp: 'pod-infra-container-image=.*pause:3.1'
-    replace: 'pod-infra-container-image={{ image_repo }}/pause:{{ pause_version }}'
+    replace: 'pod-infra-container-image={{ k8s_image_repo }}/pause:{{ pause_version }}'
 
 - name: set pause container from private docker registry step 2
   lineinfile:

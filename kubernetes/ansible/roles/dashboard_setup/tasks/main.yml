@@ -25,8 +25,8 @@
 - name: replace image repo
   replace:
     path: '{{ k8s_install_root }}/kubernetes-dashboard.yml'
-    regexp: '__IMAGE_REPO__'
-    replace: '{{ image_repo }}'
+    regexp: '__UTILS_IMAGE_REPO__'
+    replace: '{{ utils_image_repo }}'
 
 - name: create namespace kubernetes-dashboard
   shell: 'kubectl create namespace kubernetes-dashboard'

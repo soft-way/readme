@@ -24,7 +24,12 @@ CA certificate into system.
 ```
 
 3. Route has been added into all nodes and all can reach docker image repo
-
+```
+```
+4. ksh is installed
+```
+    yum install ksh
+```
 
 **Install k8s cluster**
 
