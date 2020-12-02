@@ -7,11 +7,11 @@ bind_port: 6443
 pod_subnet: 172.18.0.0/16
 service_subnet: 10.96.0.0/12
 cluster_dns: 10.96.0.10 
-cluster_domain: dev.your-domain
+cluster_domain: xyz.com
 
 k8s_install_root: /var/log/k8s
-k8s_image_repo: registry.dev.your-domain/k8s_gcr_io
-utils_image_repo: registry.dev.your-domain/docker_io
+k8s_image_repo: registry.xyz.com/k8s_gcr_io
+utils_image_repo: registry.xyz.com/docker_io
 
 calico_nic: eth0
 

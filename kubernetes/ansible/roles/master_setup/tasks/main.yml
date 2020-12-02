@@ -35,7 +35,7 @@
          --pod-network-cidr {{ pod_subnet }} \
          --apiserver-bind-port {{ bind_port }} \
          > {{ k8s_install_root }}/kubeadm-init-config.out
-
+         
 - name: get worker join command
   shell: "grep -m1 -A1 'kubeadm join' {{ k8s_install_root }}/kubeadm-init-config.out | tr -d '\\\\\\\n' "
   register: worker_join_command
@@ -85,16 +85,10 @@
 - name: apply calico
   shell: 'kubectl apply -f {{ k8s_install_root }}/calico.yml'
   
-- name: fetch kubeadm init config log from first master
-  fetch:
-    src: '{{ k8s_install_root }}/kubeadm-init-config.out'
-    dest: '{{ playbook_dir }}/k8s/kubeadm-init-config.out'
-    flat: yes
-
 - name: fetch master join required configuration files from first master
   fetch:
     src: '{{ item }}'
-    dest: '{{ playbook_dir }}/k8s'
+    dest: '{{ k8s_install_root }}/k8s'
   with_items: '{{ master_join_files }}'
 
 - name: wait first master ready

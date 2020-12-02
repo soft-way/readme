@@ -32,13 +32,13 @@
     src: daemon.json
     dest: /etc/docker
 
-- name: 'create /etc/docker/certs.d/{{ k8s_image_repo }} fold if not existed'
-  file: dest=/etc/docker/certs.d/{{ k8s_image_repo }} state=directory mode=755
+- name: 'create /etc/docker/certs.d/{{ k8s_image_repo | dirname }} fold if not existed'
+  file: dest=/etc/docker/certs.d/{{ k8s_image_repo | dirname }} state=directory mode=755
 
 - name: 'copy CA certificate into /etc/docker/certs.d/{{ k8s_image_repo }}'
   copy:
     src: root_ca.crt
-    dest: /etc/docker/certs.d/{{ k8s_image_repo }}/ca.crt
+    dest: /etc/docker/certs.d/{{ k8s_image_repo | dirname }}/ca.crt
 
 - name: create /etc/systemd/system/docker.service.d fold if not existed
   file: dest=/etc/systemd/system/docker.service.d state=directory mode=755
