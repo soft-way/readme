@@ -190,7 +190,7 @@ spec:
     spec:
       containers:
         - name: kubernetes-dashboard
-          image: __UTILS_IMAGE_REPO__/kubernetesui/dashboard:v2.0.4
+          image: __UTILS_IMAGE_REPO__/kubernetesui/dashboard:v2.1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8443
