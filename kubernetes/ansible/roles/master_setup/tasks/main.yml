@@ -7,7 +7,7 @@
     dest: '{{ k8s_install_root }}'
     mode: '0644'
   with_items:
-    - calico.yml
+    - calico-{{calico_version}}.yml
 
 - name: upload node status check tool
   copy:
@@ -62,7 +62,7 @@
     regexp: 'k8s.gcr.io|__UTILS_IMAGE_REPO__'
     replace: '{{ utils_image_repo }}'
   with_items:
-    - calico.yml
+    - calico-{{calico_version}}.yml
 
 - name: replace pod subnet for calico
   replace:
@@ -70,7 +70,7 @@
     regexp: '__POD_SUBNET__'
     replace: '{{ pod_subnet }}'
   with_items:
-    - calico.yml
+    - calico-{{calico_version}}.yml
 
 - name: replace calico interface
   replace:
@@ -78,12 +78,12 @@
     regexp: '__CALICO_INTF__'
     replace: '{{ calico_nic }}'
   with_items:
-    - calico.yml
+    - calico-{{calico_version}}.yml
 
 - import_tasks: '{{ playbook_dir }}/tasks/common/kubectl_cli_conf.yml'
 
 - name: apply calico
-  shell: 'kubectl apply -f {{ k8s_install_root }}/calico.yml'
+  shell: 'kubectl apply -f {{ k8s_install_root }}/calico-{{calico_version}}.yml'
   
 - name: fetch master join required configuration files from first master
   fetch:

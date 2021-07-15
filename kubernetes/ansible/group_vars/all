@@ -1,9 +1,12 @@
-kubernetes_version: v1.19.6
+kubernetes_version: v1.21.2
+pause_version: 3.4.1
 dashboard_version: v2
 
-control_plane_endpoint: 192.168.1.62
+control_plane_endpoint: 192.168.1.85
 bind_port: 6443
 pod_subnet: 172.18.0.0/16
+service_subnet: 10.96.0.0/12
+cluster_dns: 10.96.0.10 
 cluster_domain: xyz.com
 
 k8s_install_root: /var/log/k8s
@@ -11,6 +14,7 @@ k8s_image_repo: registry.xyz.com/k8s_gcr_io
 utils_image_repo: registry.xyz.com/docker_io
 
 calico_nic: eth0
+calico_version: 3.19.1
 
 master_join_files:
     - /etc/kubernetes/admin.conf 
